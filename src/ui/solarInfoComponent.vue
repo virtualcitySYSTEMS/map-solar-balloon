@@ -118,6 +118,31 @@
       const plugin = app.plugins.getByKey('@vcmap/vcs-solar-balloon');
       const { config } = plugin;
       const tableAttr = ref([]);
+      const theme = ref('light');
+      const lightColor = '#535A6C';
+      const darkColor = '#ccc';
+      const currentColor = ref(lightColor);
+      let globalRad = {};
+      let diffuseRad = {};
+      let directRad = {};
+      let globalArray = [];
+      let diffuseArray = [];
+      let directArray = [];
+      app.localeChanged.addEventListener((locale) => {
+        console.log('Locale changed', locale);
+      });
+      app.themeChanged.addEventListener(() => {
+        if (theme.value === 'light') {
+          theme.value = 'dark';
+          currentColor.value = darkColor;
+          console.log('Theme changed', theme);
+        } else {
+          theme.value = 'light';
+          currentColor.value = lightColor;
+        }
+        setup();
+      });
+
       watch(props, setup, { immediate: true });
       function createChart(
         globalRad,
@@ -166,6 +191,7 @@
         let options = {
           series: [],
           chart: {
+            foreColor: currentColor.value,
             height: 400,
             width: 490,
             type: 'line',
@@ -182,6 +208,13 @@
                 speed: 350,
               },
             },
+            dropShadow: {
+              enabled: true,
+              top: 3,
+              left: 2,
+              blur: 4,
+              opacity: 1,
+            },
             zoom: {
               enabled: false,
             },
@@ -190,8 +223,16 @@
           dataLabels: {
             enabled: false,
           },
+          markers: {
+            size: 4,
+            strokeWidth: 0,
+            hover: {
+              size: 6,
+            },
+          },
           stroke: {
             curve: 'straight',
+            width: 2,
           },
           /*    subtitle: {
       text: 'Solare Einstrahlung / Monat [kWh]',
@@ -201,8 +242,12 @@
             text: 'Solare Einstrahlung / Monat [kWh]',
             align: 'left',
           },
+          tooltip: {
+            theme: 'dark',
+          },
           grid: {
-            row: {
+            borderColor: currentColor.value,
+            row2: {
               colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
               opacity: 0.5,
             },
@@ -217,7 +262,8 @@
           Object.entries(globalRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               //console.log(Number(key.split('_')[1])+' :'+value);
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               globalSum += value;
             }
           });
@@ -235,7 +281,8 @@
           var data = [];
           Object.entries(globalRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               globalSumWalls += value;
             }
           });
@@ -253,7 +300,8 @@
           var data = [];
           Object.entries(globalRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               globalSumRoof += value;
             }
           });
@@ -272,7 +320,8 @@
           Object.entries(diffuseRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               //console.log(Number(key.split('_')[1])+' :'+value);
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               diffuseSum += value;
             }
           });
@@ -291,7 +340,8 @@
           Object.entries(diffuseRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               //console.log(Number(key.split('_')[1])+' :'+value);
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               diffuseSumWalls += value;
             }
           });
@@ -310,7 +360,8 @@
           Object.entries(diffuseRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               //console.log(Number(key.split('_')[1])+' :'+value);
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               diffuseSumRoof += value;
             }
           });
@@ -329,7 +380,8 @@
           Object.entries(directRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               //console.log(Number(key.split('_')[1])+' :'+value);
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               directSum += value;
             }
           });
@@ -348,7 +400,8 @@
           Object.entries(directRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               //console.log(Number(key.split('_')[1])+' :'+value);
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               directSumWalls += value;
             }
           });
@@ -367,7 +420,8 @@
           Object.entries(directRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               //console.log(Number(key.split('_')[1])+' :'+value);
-              data[Number(key.split('_')[1]) - 1] = value;
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
               directSumRoof += value;
             }
           });
@@ -429,9 +483,9 @@
           ...new Set(Object.keys(directRad).map((el) => el.split('_')[0])),
         ];
 
-        var globalArray = splitSolarAttr(uniqueGlobalRadKeys);
-        var diffuseArray = splitSolarAttr(uniqueDiffuseRadKeys);
-        var directArray = splitSolarAttr(uniqueDirectRadKeys);
+        globalArray = splitSolarAttr(uniqueGlobalRadKeys);
+        diffuseArray = splitSolarAttr(uniqueDiffuseRadKeys);
+        directArray = splitSolarAttr(uniqueDirectRadKeys);
         var props = createChart(
           globalRad,
           diffuseRad,
@@ -445,19 +499,19 @@
       }
       function setup() {
         const raw = props.attributes;
-        const globalRad = Object.keys(raw)
+        globalRad = Object.keys(raw)
           .filter((key) => key.includes('globalRad'))
           .reduce((obj, key) => {
             obj[key] = raw[key];
             return obj;
           }, {});
-        const diffuseRad = Object.keys(raw)
+        diffuseRad = Object.keys(raw)
           .filter((key) => key.includes('diffuseRad'))
           .reduce((obj, key) => {
             obj[key] = raw[key];
             return obj;
           }, {});
-        const directRad = Object.keys(raw)
+        directRad = Object.keys(raw)
           .filter((key) => key.includes('directRad'))
           .reduce((obj, key) => {
             obj[key] = raw[key];
