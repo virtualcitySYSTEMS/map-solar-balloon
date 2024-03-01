@@ -1,0 +1,586 @@
+<template>
+  <AbstractConfigEditor @submit="apply" v-bind="{ ...$attrs, ...$props }">
+    <div class="ma-5">
+      <h2>{{ $t('solarInfo.editorHeader1') }}</h2>
+      <!--VcsFillSelector v-model="styleOptions.fill" /-->
+      <h6>
+        <small class="red--text">{{ $t('solarInfo.editorHint1') }}</small>
+      </h6>
+      <v-container fluid class="px-2">
+        <v-row no-gutters class="mb-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.globalRadMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="globalRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="globalRad"
+              @mouseleave="createChart"
+            />
+          </v-col>
+        </v-row>
+        <v-row no-gutters class="mb-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.diffuseRadMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="diffuseRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="diffuseRad"
+              @mouseleave="createChart"
+          /></v-col>
+        </v-row>
+        <v-row no-gutters class="mb-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.directRadMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="directRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="directRad"
+              @mouseleave="createChart"
+          /></v-col>
+        </v-row>
+        <v-row no-gutters class="mb-2">
+          <v-col cols="8">
+            <VcsLabel html-for="selectInput" dense>
+              {{ $t('solarInfo.graphType') }}
+            </VcsLabel>
+          </v-col>
+          <v-col cols="4">
+            <VcsSelect
+              id="selectInput"
+              :items="selectOptions"
+              dense
+              v-model="selected"
+              @change="createChart"
+            />
+          </v-col>
+        </v-row>
+      </v-container>
+      <VcsFormSection
+        heading="Einstellungen für themat. Flächen"
+        expandable
+        start-open
+        class="ma-0"
+      >
+        <v-row no-gutters class="ma-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.globalRadWallsMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="globalWallRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="globalWallRad"
+              @mouseleave="createChart"
+          /></v-col>
+        </v-row>
+        <v-row no-gutters class="ma-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.diffuseRadWallsMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="diffuseWallRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="diffuseWallRad"
+              @mouseleave="createChart"
+          /></v-col>
+        </v-row>
+        <v-row no-gutters class="ma-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.directRadWallsMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="directWallRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="directWallRad"
+              @mouseleave="createChart"
+          /></v-col>
+        </v-row>
+        <v-row no-gutters class="ma-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.globalRadRoofsMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="globalRoofRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="globalRoofRad"
+              @mouseleave="createChart"
+          /></v-col>
+        </v-row>
+        <v-row no-gutters class="ma-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.diffuseRadRoofsMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="diffuseRoofRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="diffuseRoofRad"
+              @mouseleave="createChart"
+          /></v-col>
+        </v-row>
+        <v-row no-gutters class="ma-2">
+          <v-col cols="8" align-self="center">
+            {{ $t('solarInfo.directRadRoofsMonths') }}
+          </v-col>
+          <v-col cols="4">
+            <v-text-field
+              :label="directRoofRad"
+              hide-details
+              class="ma-0 pb-1 pt-1"
+              v-model="directRoofRad"
+              @mouseleave="createChart"
+          /></v-col>
+        </v-row>
+      </VcsFormSection>
+    </div>
+    <div class="ma-5">
+      <h2>{{ $t('solarInfo.editorHeader2') }}</h2>
+      <div id="solarPreview"></div>
+    </div>
+  </AbstractConfigEditor>
+</template>
+
+<script>
+  import { VContainer, VRow, VCol, VTextField } from 'vuetify/lib';
+  import {
+    AbstractConfigEditor,
+    VcsFormSection,
+    VcsSelect,
+    VcsLabel,
+  } from '@vcmap/ui';
+  import { onMounted, watch, ref, inject } from 'vue';
+  import getDefaultOptions from '../js/defaultOptions.js';
+  import { parseColor } from '@vcmap/core';
+  import { Fill, Icon, RegularShape, Stroke, Style, Text } from 'ol/style.js';
+  import { name } from '../../package.json';
+  import ApexCharts from 'apexcharts';
+
+  export const defaultOptions = {};
+
+  export default {
+    name: 'SolarBalloonConfigEditor',
+    title: 'Solar Balloon Editor',
+    components: {
+      VContainer,
+      VRow,
+      VCol,
+      AbstractConfigEditor,
+      VcsFormSection,
+      VTextField,
+      VcsSelect,
+    },
+    props: {
+      getConfig: {
+        type: Function,
+        required: true,
+      },
+      setConfig: {
+        type: Function,
+        required: true,
+      },
+    },
+
+    setup(props) {
+      /** @type { import("@vcmap/ui").VcsUiApp } */
+      const app = inject('vcsApp');
+      app.localeChanged.addEventListener((locale) => {
+        //console.log('Locale changed', locale);
+        createChart();
+      });
+      const plugin = app.plugins.getByKey(name);
+      const { config } = plugin;
+      const localConfig = ref(config);
+      const elm = document.getElementById('solarPreview');
+      //console.log(config);
+      const defaultOptions = getDefaultOptions();
+      const globalRad = ref(localConfig.value.globalColor);
+      const diffuseRad = ref(localConfig.value.diffuseColor);
+      const directRad = ref(localConfig.value.directColor);
+      const globalWallRad = ref(localConfig.value.globalWallColor);
+      const diffuseWallRad = ref(localConfig.value.diffuseWallColor);
+      const directWallRad = ref(localConfig.value.directWallColor);
+      const globalRoofRad = ref(localConfig.value.globalRoofColor);
+      const diffuseRoofRad = ref(localConfig.value.diffuseRoofColor);
+      const directRoofRad = ref(localConfig.value.directRoofColor);
+      const selected = ref('Line');
+      setTimeout(() => {
+        createChart();
+      }, 1);
+      function createChart() {
+        console.log(selected.value);
+        var chart = document.getElementById('solarPreview');
+        if (chart) {
+          chart.innerHTML = '';
+        }
+        var xAxis = ['Jan', '...', '...', '...', 'Dec'];
+        let options;
+        if (selected.value === 'Line') {
+          options = {
+            series: [
+              {
+                name: app.vueI18n.t('solarInfo.globalRadMonths'), //'glob. Rad. / Monat', //typmap.get(elm),
+                data: [10, 23, 45, 8, 26],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.diffuseRadMonths'), //'diff. Rad. / Monat', //typmap.get(elm),
+                data: [1, 45, 2, 6, 23],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.directRadMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [6, 13, 3, 32, 7],
+              },
+            ],
+            chart: {
+              foreColor: '#ccc',
+              height: 200,
+
+              type: 'line',
+              animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 400,
+                animateGradually: {
+                  enabled: true,
+                  delay: 50,
+                },
+                dynamicAnimation: {
+                  enabled: true,
+                  speed: 350,
+                },
+              },
+              dropShadow: {
+                enabled: true,
+                top: 3,
+                left: 2,
+                blur: 4,
+                opacity: 1,
+              },
+              zoom: {
+                enabled: false,
+              },
+            },
+            colors: [globalRad.value, diffuseRad.value, directRad.value],
+            dataLabels: {
+              enabled: false,
+            },
+            markers: {
+              size: 4,
+              strokeWidth: 0,
+              hover: {
+                size: 6,
+              },
+            },
+            stroke: {
+              curve: 'straight',
+              width: 2,
+            },
+            title: {
+              text: app.vueI18n.t('solarInfo.chartTitle'),
+              align: 'left',
+            },
+            tooltip: {
+              theme: 'dark',
+            },
+            grid: {
+              borderColor: '#ccc',
+              row2: {
+                colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                opacity: 0.5,
+              },
+            },
+            xaxis: {
+              categories: xAxis,
+            },
+          };
+        } else if (selected.value === 'Bar') {
+          options = {
+            series: [
+              {
+                name: app.vueI18n.t('solarInfo.globalRadMonths'), //'glob. Rad. / Monat', //typmap.get(elm),
+                data: [10, 23, 45, 8, 26],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.diffuseRadMonths'), //'diff. Rad. / Monat', //typmap.get(elm),
+                data: [1, 45, 2, 6, 23],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.directRadMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [6, 13, 3, 32, 7],
+              },
+            ],
+            chart: {
+              foreColor: '#ccc',
+              height: 200,
+              stacked: true,
+              type: 'bar',
+              animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 400,
+                animateGradually: {
+                  enabled: true,
+                  delay: 50,
+                },
+                dynamicAnimation: {
+                  enabled: true,
+                  speed: 350,
+                },
+              },
+              zoom: {
+                enabled: false,
+              },
+            },
+            plotOptions: {
+              bar: {
+                horizontal: false,
+                columnWidth: '35%',
+              },
+            },
+            colors: [globalRad.value, diffuseRad.value, directRad.value],
+            dataLabels: {
+              enabled: false,
+            },
+            markers: {
+              size: 4,
+              strokeWidth: 0,
+              hover: {
+                size: 6,
+              },
+            },
+            stroke: {
+              curve: 'straight',
+              width: 2,
+            },
+            title: {
+              text: app.vueI18n.t('solarInfo.chartTitle'),
+              align: 'left',
+            },
+            tooltip: {
+              theme: 'dark',
+            },
+            grid: {
+              borderColor: '#ccc',
+            },
+            xaxis: {
+              categories: xAxis,
+            },
+          };
+        }
+
+        /*         globalArray.month.forEach((elm) => {
+          var data = [10,12,15,14,13,18,55,60,23,88,45,26];
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.globalRadMonths'), //'glob. Rad / Monat', //typmap.get(elm),
+            data: [10,12,15,14,13,18,55,60,23,88,45,26],
+          });
+          options.colors.push((globalRad.value));
+        });
+        globalArray.walls.forEach((elm) => {
+          var data = [9,15,15,12,17,2,90,13,5,4,6];
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), //'glob. Rad der Wand / Monat', //typmap.get(elm),
+            data: data,
+          });
+          if (!options.colors.includes('#ffa500')) {
+            options.colors.push('#ffa500');
+          } else {
+            options.colors.push(getRandomColor());
+          }
+        });
+        globalArray.roofs.forEach((elm) => {
+          var data = [];
+          Object.entries(globalRad).forEach(([key, value]) => {
+            if (key.includes(elm)) {
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
+              globalSumRoof += value;
+            }
+          });
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), //'glob. Rad des Daches / Monat', //typmap.get(elm),
+            data: data,
+          });
+          if (!options.colors.includes('#ff6e4a')) {
+            options.colors.push('#ff6e4a');
+          } else {
+            options.colors.push(getRandomColor());
+          }
+        });
+        diffuseArray.month.forEach((elm) => {
+          var data = [];
+          Object.entries(diffuseRad).forEach(([key, value]) => {
+            if (key.includes(elm)) {
+              //console.log(Number(key.split('_')[1])+' :'+value);
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
+              diffuseSum += value;
+            }
+          });
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.diffuseRadMonths'), //'diff. Rad / Monat', //typmap.get(elm),
+            data: data,
+          });
+          if (!options.colors.includes(config.diffuseColor)) {
+            options.colors.push(config.diffuseColor);
+          } else {
+            options.colors.push(getRandomColor());
+          }
+        });
+        diffuseArray.walls.forEach((elm) => {
+          var data = [];
+          Object.entries(diffuseRad).forEach(([key, value]) => {
+            if (key.includes(elm)) {
+              //console.log(Number(key.split('_')[1])+' :'+value);
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
+              diffuseSumWalls += value;
+            }
+          });
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), //'diff. Rad der Wand / Monat', //typmap.get(elm),
+            data: data,
+          });
+          if (!options.colors.includes('#00fa00')) {
+            options.colors.push('#00fa00');
+          } else {
+            options.colors.push(getRandomColor());
+          }
+        });
+        diffuseArray.roofs.forEach((elm) => {
+          var data = [];
+          Object.entries(diffuseRad).forEach(([key, value]) => {
+            if (key.includes(elm)) {
+              //console.log(Number(key.split('_')[1])+' :'+value);
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
+              diffuseSumRoof += value;
+            }
+          });
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), //'diff. Rad des Daches / Monat', //typmap.get(elm),
+            data: data,
+          });
+          if (!options.colors.includes('#ceff00')) {
+            options.colors.push('#ceff00');
+          } else {
+            options.colors.push(getRandomColor());
+          }
+        });
+        directArray.month.forEach((elm) => {
+          var data = [];
+          Object.entries(directRad).forEach(([key, value]) => {
+            if (key.includes(elm)) {
+              //console.log(Number(key.split('_')[1])+' :'+value);
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
+              directSum += value;
+            }
+          });
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.directRadMonths'), //'dir. Rad / Monat', //typmap.get(elm),
+            data: data,
+          });
+          if (!options.colors.includes(config.directColor)) {
+            options.colors.push(config.directColor);
+          } else {
+            options.colors.push(getRandomColor());
+          }
+        });
+        directArray.walls.forEach((elm) => {
+          var data = [];
+          Object.entries(directRad).forEach(([key, value]) => {
+            if (key.includes(elm)) {
+              //console.log(Number(key.split('_')[1])+' :'+value);
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
+              directSumWalls += value;
+            }
+          });
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.directRadWallsMonths'), //'dir. Rad der Wand / Monat', //typmap.get(elm),
+            data: data,
+          });
+          if (!options.colors.includes('#7a7aff')) {
+            options.colors.push('#7a7aff');
+          } else {
+            options.colors.push(getRandomColor());
+          }
+        });
+        directArray.roofs.forEach((elm) => {
+          var data = [];
+          Object.entries(directRad).forEach(([key, value]) => {
+            if (key.includes(elm)) {
+              //console.log(Number(key.split('_')[1])+' :'+value);
+              data[Number(key.split('_')[1]) - 1] =
+                Math.round(value * 100) / 100;
+              directSumRoof += value;
+            }
+          });
+          options.series.push({
+            name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), //'dir. Rad des Daches / Monat', //typmap.get(elm),
+            data: data,
+          });
+          if (!options.colors.includes('#80daeb')) {
+            options.colors.push('#80daeb');
+          } else {
+            options.colors.push(getRandomColor());
+          }
+        }); */
+
+        chart = new ApexCharts(
+          document.getElementById('solarPreview'),
+          options,
+        );
+        chart.render();
+      }
+      const apply = async () => {
+        const configuration = await props.getConfig();
+        configuration.globalColor = globalRad.value;
+        configuration.diffuseColor = diffuseRad.value;
+        configuration.directColor = directRad.value;
+        configuration.globalWallColor = globalWallRad.value;
+        configuration.diffuseWallColor = diffuseWallRad.value;
+        configuration.directWallColor = directWallRad.value;
+        configuration.globalRoofColor = globalRoofRad.value;
+        configuration.diffuseRoofColor = diffuseRoofRad.value;
+        configuration.directRoofColor = directRoofRad.value;
+        configuration.chartType = selected.value;
+        await props.setConfig(configuration);
+      };
+
+      return {
+        //localConfig,
+        apply,
+        globalRad,
+        directRad,
+        diffuseRad,
+        globalWallRad,
+        directWallRad,
+        diffuseWallRad,
+        globalRoofRad,
+        directRoofRad,
+        diffuseRoofRad,
+        selected,
+        createChart,
+        selectOptions: ['Line', 'Bar'],
+      };
+    },
+  };
+</script>

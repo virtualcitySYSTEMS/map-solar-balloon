@@ -1,6 +1,6 @@
 {
   "name": "@vcmap/vcs-solar-balloon",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "provides solar balloon for vc solar layer",
   "type": "module",
   "main": "src/index.js",
@@ -64,6 +64,7 @@
   },
   "mapVersion": "^5.1",
   "dependencies": {
-    "apexcharts": "^3.46.0"
+    "apexcharts": "^3.46.0",
+    "fast-deep-equal": "^3.1.3"
   }
 }

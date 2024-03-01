@@ -9,7 +9,7 @@
     <div id="solarWerte"></div>
     <!--div id="tableSolar"></div-->
     <div style="margin-left: 1rem; margin-right: 1rem; margin-bottom: 1rem">
-      <h2>Jahreswerte im Überblick</h2>
+      <h2>{{ $t('solarInfo.tableTitle') }}</h2>
       <v-simple-table
         dense
         height="250px"
@@ -18,8 +18,12 @@
       >
         <thead>
           <tr>
-            <th class="text-left font-weight-bold">Name</th>
-            <th class="text-left font-weight-bold">Wert</th>
+            <th class="text-left font-weight-bold">
+              {{ $t('solarInfo.tableCol1') }}
+            </th>
+            <th class="text-left font-weight-bold">
+              {{ $t('solarInfo.tableCol2') }}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -68,6 +72,7 @@
     VSimpleTable,
   } from 'vuetify/lib';
   import ApexCharts from 'apexcharts';
+  import { name } from '../../package.json';
   /*   var typMapping = [
     ['globalRadMonths', 'glob. Rad / Monat'],
     ['globalRadWallsMonths', 'glob. Rad on Wall / Month'],
@@ -115,13 +120,15 @@
     setup(props) {
       /** @type { import("@vcmap/ui").VcsUiApp } */
       const app = inject('vcsApp');
-      const plugin = app.plugins.getByKey('@vcmap/vcs-solar-balloon');
+      const plugin = app.plugins.getByKey(name);
       const { config } = plugin;
+      console.log(config);
       const tableAttr = ref([]);
       const theme = ref('light');
       const lightColor = '#535A6C';
       const darkColor = '#ccc';
       const currentColor = ref(lightColor);
+      const chartType = ref(config.chartType);
       let globalRad = {};
       let diffuseRad = {};
       let directRad = {};
@@ -129,13 +136,13 @@
       let diffuseArray = [];
       let directArray = [];
       app.localeChanged.addEventListener((locale) => {
-        console.log('Locale changed', locale);
+        //console.log('Locale changed', locale);
+        setup();
       });
       app.themeChanged.addEventListener(() => {
         if (theme.value === 'light') {
           theme.value = 'dark';
           currentColor.value = darkColor;
-          console.log('Theme changed', theme);
         } else {
           theme.value = 'light';
           currentColor.value = lightColor;
@@ -152,18 +159,6 @@
         diffuseArray,
         directArray,
       ) {
-        var typMapping = [
-          ['globalRadMonths', 'glob. Rad / Monat'],
-          ['globalRadWallsMonths', 'glob. Rad on Wall / Month'],
-          ['globalRadRoofsMonths', 'glob. Rad on Roof / Month'],
-          ['diffuseRadMonths', 'diff. Rad / Monat'],
-          ['diffuseRadWallsMonths', 'diff. Rad on Wall / Month'],
-          ['diffuseRadRoofsMonths', 'diff. Rad on Roof / Month'],
-          ['directRadMonths', 'dir. Rad / Monat'],
-          ['directRadWallsMonths', 'dir. Rad on Wall / Month'],
-          ['directRadRoofsMonths', 'dir. Rad on Roof / Month'],
-        ];
-        const typmap = new Map(typMapping);
         var globalSum = 0;
         var diffuseSum = 0;
         var directSum = 0;
@@ -184,78 +179,142 @@
           'Jul',
           'Aug',
           'Sep',
-          'Okt',
+          'Oct',
           'Nov',
           'Dec',
         ];
-        let options = {
-          series: [],
-          chart: {
-            foreColor: currentColor.value,
-            height: 400,
-            width: 490,
-            type: 'line',
-            animations: {
-              enabled: true,
-              easing: 'easeinout',
-              speed: 400,
-              animateGradually: {
+        let options;
+        if (chartType.value === 'Line') {
+          options = {
+            series: [],
+            chart: {
+              foreColor: currentColor.value,
+              height: 400,
+              width: 490,
+              type: 'line',
+              animations: {
                 enabled: true,
-                delay: 50,
+                easing: 'easeinout',
+                speed: 400,
+                animateGradually: {
+                  enabled: true,
+                  delay: 50,
+                },
+                dynamicAnimation: {
+                  enabled: true,
+                  speed: 350,
+                },
               },
-              dynamicAnimation: {
+              dropShadow: {
                 enabled: true,
-                speed: 350,
+                top: 3,
+                left: 2,
+                blur: 4,
+                opacity: 1,
+              },
+              zoom: {
+                enabled: false,
               },
             },
-            dropShadow: {
-              enabled: true,
-              top: 3,
-              left: 2,
-              blur: 4,
-              opacity: 1,
-            },
-            zoom: {
+            colors: [],
+            dataLabels: {
               enabled: false,
             },
-          },
-          colors: [],
-          dataLabels: {
-            enabled: false,
-          },
-          markers: {
-            size: 4,
-            strokeWidth: 0,
-            hover: {
-              size: 6,
+            markers: {
+              size: 4,
+              strokeWidth: 0,
+              hover: {
+                size: 6,
+              },
             },
-          },
-          stroke: {
-            curve: 'straight',
-            width: 2,
-          },
-          /*    subtitle: {
+            stroke: {
+              curve: 'straight',
+              width: 2,
+            },
+            /*    subtitle: {
       text: 'Solare Einstrahlung / Monat [kWh]',
       align: 'left'
     },*/
-          title: {
-            text: 'Solare Einstrahlung / Monat [kWh]',
-            align: 'left',
-          },
-          tooltip: {
-            theme: 'dark',
-          },
-          grid: {
-            borderColor: currentColor.value,
-            row2: {
-              colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-              opacity: 0.5,
+            title: {
+              text: app.vueI18n.t('solarInfo.chartTitle'),
+              align: 'left',
             },
-          },
-          xaxis: {
-            categories: xAxis,
-          },
-        };
+            tooltip: {
+              theme: 'dark',
+            },
+            grid: {
+              borderColor: currentColor.value,
+              row2: {
+                colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                opacity: 0.5,
+              },
+            },
+            xaxis: {
+              categories: xAxis,
+            },
+          };
+        } else if (chartType.value === 'Bar') {
+          options = {
+            series: [],
+            chart: {
+              foreColor: currentColor.value,
+              height: 400,
+              width: 490,
+              stacked: true,
+              type: 'bar',
+              animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 400,
+                animateGradually: {
+                  enabled: true,
+                  delay: 50,
+                },
+                dynamicAnimation: {
+                  enabled: true,
+                  speed: 350,
+                },
+              },
+              zoom: {
+                enabled: false,
+              },
+            },
+            plotOptions: {
+              bar: {
+                horizontal: false,
+                columnWidth: '35%',
+              },
+            },
+            colors: [],
+            dataLabels: {
+              enabled: false,
+            },
+            markers: {
+              size: 4,
+              strokeWidth: 0,
+              hover: {
+                size: 6,
+              },
+            },
+            stroke: {
+              curve: 'straight',
+              width: 2,
+            },
+            title: {
+              text: app.vueI18n.t('solarInfo.chartTitle'),
+              align: 'left',
+            },
+            tooltip: {
+              theme: 'dark',
+            },
+            grid: {
+              borderColor: currentColor.value,
+            },
+            xaxis: {
+              categories: xAxis,
+            },
+          };
+        }
 
         globalArray.month.forEach((elm) => {
           var data = [];
@@ -268,11 +327,11 @@
             }
           });
           options.series.push({
-            name: 'glob. Rad / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.globalRadMonths'), //'glob. Rad / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#940000')) {
-            options.colors.push('#940000');
+          if (!options.colors.includes(config.globalColor)) {
+            options.colors.push(config.globalColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -287,11 +346,11 @@
             }
           });
           options.series.push({
-            name: 'glob. Rad der Wand / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), //'glob. Rad der Wand / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#ffa500')) {
-            options.colors.push('#ffa500');
+          if (!options.colors.includes(config.globaWallColor)) {
+            options.colors.push(config.globaWallColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -306,11 +365,11 @@
             }
           });
           options.series.push({
-            name: 'glob. Rad des Daches / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), //'glob. Rad des Daches / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#ff6e4a')) {
-            options.colors.push('#ff6e4a');
+          if (!options.colors.includes(config.globaRoofColor)) {
+            options.colors.push(config.globaRoofColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -326,11 +385,11 @@
             }
           });
           options.series.push({
-            name: 'diff. Rad / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.diffuseRadMonths'), //'diff. Rad / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#009400')) {
-            options.colors.push('#009400');
+          if (!options.colors.includes(config.diffuseColor)) {
+            options.colors.push(config.diffuseColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -346,11 +405,11 @@
             }
           });
           options.series.push({
-            name: 'diff. Rad der Wand / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), //'diff. Rad der Wand / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#00fa00')) {
-            options.colors.push('#00fa00');
+          if (!options.colors.includes(config.diffuseWallColor)) {
+            options.colors.push(config.diffuseWallColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -366,11 +425,11 @@
             }
           });
           options.series.push({
-            name: 'diff. Rad des Daches / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), //'diff. Rad des Daches / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#ceff00')) {
-            options.colors.push('#ceff00');
+          if (!options.colors.includes(config.diffuseRoofColor)) {
+            options.colors.push(config.diffuseRoofColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -386,11 +445,11 @@
             }
           });
           options.series.push({
-            name: 'dir. Rad / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.directRadMonths'), //'dir. Rad / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#0000b3')) {
-            options.colors.push('#0000b3');
+          if (!options.colors.includes(config.directColor)) {
+            options.colors.push(config.directColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -406,11 +465,11 @@
             }
           });
           options.series.push({
-            name: 'dir. Rad der Wand / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.directRadWallsMonths'), //'dir. Rad der Wand / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#7a7aff')) {
-            options.colors.push('#7a7aff');
+          if (!options.colors.includes(config.directWallColor)) {
+            options.colors.push(config.directWallColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -426,11 +485,11 @@
             }
           });
           options.series.push({
-            name: 'dir. Rad des Daches / Monat', //typmap.get(elm),
+            name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), //'dir. Rad des Daches / Monat', //typmap.get(elm),
             data: data,
           });
-          if (!options.colors.includes('#80daeb')) {
-            options.colors.push('#80daeb');
+          if (!options.colors.includes(config.directRoofColor)) {
+            options.colors.push(config.directRoofColor);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -526,7 +585,7 @@
           { svfMean: svfMean * 100 },
         ];
         setTimeout(function () {
-          var chart = document.getElementById('SolarWerte');
+          var chart = document.getElementById('solarWerte');
           if (chart) {
             chart.innerHTML = '';
           }

@@ -1,5 +1,9 @@
 import { name, version, mapVersion } from '../package.json';
+import SolarBalloonConfigEditor from './ui/solarBalloonConfigEditor.vue';
 import solarFeatureInfo from './js/solarFeatureInfo.js';
+import getDefaultOptions from './js/defaultOptions.js';
+import { getConfig } from './js/configManager.js';
+import deepEqual from 'fast-deep-equal';
 
 /**
  * @typedef {Object} PluginState
@@ -17,7 +21,12 @@ export default function plugin(config, baseUrl) {
   // eslint-disable-next-line no-console
   console.log(config, baseUrl);
   return {
-    config,
+    //config,
+    /** @returns {import("./configManager").pluginConfig} */
+    get config() {
+      return config;
+    },
+
     get name() {
       return name;
     },
@@ -33,6 +42,9 @@ export default function plugin(config, baseUrl) {
      * @returns {Promise<void>}
      */
     initialize: async (vcsUiApp, state) => {
+      const { pluginConfig } = getConfig(config, getDefaultOptions());
+      config = pluginConfig;
+
       // eslint-disable-next-line no-console
       vcsUiApp.featureInfoClassRegistry.registerClass(
         name,
@@ -61,9 +73,7 @@ export default function plugin(config, baseUrl) {
      * should return all default values of the configuration
      * @returns {T}
      */
-    getDefaultOptions() {
-      return {};
-    },
+    getDefaultOptions,
     /**
      * should return the plugin's serialization excluding all default values
      * @returns {T}
@@ -71,7 +81,20 @@ export default function plugin(config, baseUrl) {
     toJSON() {
       // eslint-disable-next-line no-console
       console.log('Called when serializing this plugin instance');
-      return config;
+      const defaultOptions = getDefaultOptions();
+      const flatConfig = {
+        globalColor: config.globalColor,
+        diffuseColor: config.diffuseColor,
+        directColor: config.directColor,
+      };
+      const customOptions = Object.keys(flatConfig).reduce((acc, key) => {
+        if (!deepEqual(defaultOptions[key], flatConfig[key])) {
+          acc[key] = flatConfig[key];
+        }
+        return acc;
+      }, {});
+
+      return flatConfig;
     },
     /**
      * should return the plugins state
@@ -88,8 +111,16 @@ export default function plugin(config, baseUrl) {
     i18n: {
       en: {
         solarInfo: {
+          editorHeader1: 'Settings of graph colors',
+          editorHint1:
+            'Please type in here HEX-colors, like #FF7F50 (max. 6 digits)',
+          editorHeader2: 'Graph preview',
+          graphType: 'graph type',
           balloonTitle: 'Solar data',
           chartTitle: 'Solar irradiation / Month [kWh]',
+          tableTitle: 'Overview of yearly values',
+          tableCol1: 'name',
+          tableCol2: 'value',
           globalRadMonths: 'glob. Rad / Month',
           globalRadWallsMonths: 'glob. Rad on Wall / Month',
           globalRadRoofsMonths: 'glob. Rad on Roof / Month',
@@ -109,8 +140,16 @@ export default function plugin(config, baseUrl) {
       },
       de: {
         solarInfo: {
+          editorHeader1: 'Einstellung der Graphfarben',
+          editorHint1:
+            'Bitte tragen sie hier nur HEX-Farben ein, im Stil #FF7F50 (max. 6 Zeichen)',
+          editorHeader2: 'Graphvorschau',
+          graphType: 'Graphtyp',
           balloonTitle: 'Solardaten',
           chartTitle: 'Solare Einstrahlung / Monat [kWh]',
+          tableTitle: 'Jahreswerte im Überblick',
+          tableCol1: 'Name',
+          tableCol2: 'Wert',
           globalRadMonths: 'glob. Rad / Monat',
           globalRadWallsMonths: 'glob. Rad der Wand / Monat',
           globalRadRoofsMonths: 'glob. Rad des Daches / Monat',
@@ -134,7 +173,7 @@ export default function plugin(config, baseUrl) {
      * @returns {Array<import("@vcmap/ui").PluginConfigEditor>}
      */
     getConfigEditors() {
-      return [];
+      return [{ component: SolarBalloonConfigEditor }];
     },
     destroy() {
       // eslint-disable-next-line no-console
