@@ -57,7 +57,6 @@
     VcsFormButton,
     VcsFormSection,
     VcsSelect,
-    VcsLabel,
   } from '@vcmap/ui';
   import {
     VSheet,
@@ -109,7 +108,6 @@
       VcsFormButton,
       VcsFormSection,
       VcsSelect,
-      VcsLabel,
       VListItemTitle,
       VListItemContent,
       VListItem,

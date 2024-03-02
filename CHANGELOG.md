@@ -10,3 +10,8 @@ added plugin editor for app-configurator
 
 - added translation of editor
 - added bar chart option
+
+# v1.0.3
+
+- added support of thematic surface settings in plugin editor
+- added support of thematic surfaces representation in balloon

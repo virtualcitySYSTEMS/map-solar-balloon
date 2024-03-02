@@ -2,74 +2,82 @@
   <AbstractConfigEditor @submit="apply" v-bind="{ ...$attrs, ...$props }">
     <div class="ma-5">
       <h2>{{ $t('solarInfo.editorHeader1') }}</h2>
-      <!--VcsFillSelector v-model="styleOptions.fill" /-->
-      <h6>
-        <small class="red--text">{{ $t('solarInfo.editorHint1') }}</small>
-      </h6>
-      <v-container fluid class="px-2">
-        <v-row no-gutters class="mb-2">
-          <v-col cols="8" align-self="center">
-            {{ $t('solarInfo.globalRadMonths') }}
-          </v-col>
-          <v-col cols="4">
-            <v-text-field
-              :label="globalRad"
-              hide-details
-              class="ma-0 pb-1 pt-1"
-              v-model="globalRad"
-              @mouseleave="createChart"
-            />
-          </v-col>
-        </v-row>
-        <v-row no-gutters class="mb-2">
-          <v-col cols="8" align-self="center">
-            {{ $t('solarInfo.diffuseRadMonths') }}
-          </v-col>
-          <v-col cols="4">
-            <v-text-field
-              :label="diffuseRad"
-              hide-details
-              class="ma-0 pb-1 pt-1"
-              v-model="diffuseRad"
-              @mouseleave="createChart"
-          /></v-col>
-        </v-row>
-        <v-row no-gutters class="mb-2">
-          <v-col cols="8" align-self="center">
-            {{ $t('solarInfo.directRadMonths') }}
-          </v-col>
-          <v-col cols="4">
-            <v-text-field
-              :label="directRad"
-              hide-details
-              class="ma-0 pb-1 pt-1"
-              v-model="directRad"
-              @mouseleave="createChart"
-          /></v-col>
-        </v-row>
-        <v-row no-gutters class="mb-2">
-          <v-col cols="8">
-            <VcsLabel html-for="selectInput" dense>
-              {{ $t('solarInfo.graphType') }}
-            </VcsLabel>
-          </v-col>
-          <v-col cols="4">
-            <VcsSelect
-              id="selectInput"
-              :items="selectOptions"
-              dense
-              v-model="selected"
-              @change="createChart"
-            />
-          </v-col>
-        </v-row>
-      </v-container>
+      <v-row no-gutters class="mb-2">
+        <v-col cols="8">
+          <VcsLabel html-for="selectInput" dense>
+            {{ $t('solarInfo.graphType') }}
+          </VcsLabel>
+        </v-col>
+        <v-col cols="4">
+          <VcsSelect
+            id="selectInput"
+            :items="selectOptions"
+            dense
+            v-model="selected"
+            @change="createChart"
+          />
+        </v-col>
+      </v-row>
       <VcsFormSection
-        heading="Einstellungen für themat. Flächen"
+        :heading="$t('solarInfo.editorHeader1_1')"
         expandable
-        start-open
         class="ma-0"
       >
+        <!--VcsFillSelector v-model="styleOptions.fill" /-->
+        <h6>
+          <small class="red--text">{{ $t('solarInfo.editorHint1') }}</small>
+        </h6>
+        <v-container fluid class="px-2">
+          <v-row no-gutters class="mb-2">
+            <v-col cols="8" align-self="center">
+              {{ $t('solarInfo.globalRadMonths') }}
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                :label="globalRad"
+                hide-details
+                class="ma-0 pb-1 pt-1"
+                v-model="globalRad"
+                @mouseleave="createChart"
+              />
+            </v-col>
+          </v-row>
+          <v-row no-gutters class="mb-2">
+            <v-col cols="8" align-self="center">
+              {{ $t('solarInfo.diffuseRadMonths') }}
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                :label="diffuseRad"
+                hide-details
+                class="ma-0 pb-1 pt-1"
+                v-model="diffuseRad"
+                @mouseleave="createChart"
+            /></v-col>
+          </v-row>
+          <v-row no-gutters class="mb-2">
+            <v-col cols="8" align-self="center">
+              {{ $t('solarInfo.directRadMonths') }}
+            </v-col>
+            <v-col cols="4">
+              <v-text-field
+                :label="directRad"
+                hide-details
+                class="ma-0 pb-1 pt-1"
+                v-model="directRad"
+                @mouseleave="createChart"
+            /></v-col>
+          </v-row>
+        </v-container>
+      </VcsFormSection>
+      <VcsFormSection
+        :heading="$t('solarInfo.editorHeader1_2')"
+        expandable
+        class="ma-0"
+      >
+        <h6>
+          <small class="red--text">{{ $t('solarInfo.editorHint1') }}</small>
+        </h6>
         <v-row no-gutters class="ma-2">
           <v-col cols="8" align-self="center">
             {{ $t('solarInfo.globalRadWallsMonths') }}
@@ -185,6 +193,7 @@
       VcsFormSection,
       VTextField,
       VcsSelect,
+      VcsLabel,
     },
     props: {
       getConfig: {
@@ -246,10 +255,45 @@
                 name: app.vueI18n.t('solarInfo.directRadMonths'), //'direct Rad. / Monat', //typmap.get(elm),
                 data: [6, 13, 3, 32, 7],
               },
+              {
+                name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [20, 20, 20, 20, 20],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [15, 15, 15, 15, 15],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [12, 12, 12, 12, 12],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [10, 10, 10, 10, 10],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.directRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [30, 30, 30, 30, 30],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [25, 25, 25, 25, 25],
+              },
+            ],
+            colors: [
+              globalRad.value,
+              diffuseRad.value,
+              directRad.value,
+              globalWallRad.value,
+              globalRoofRad.value,
+              diffuseWallRad.value,
+              diffuseRoofRad.value,
+              directWallRad.value,
+              directRoofRad.value,
             ],
             chart: {
               foreColor: '#ccc',
-              height: 200,
+              height: 300,
 
               type: 'line',
               animations: {
@@ -276,7 +320,6 @@
                 enabled: false,
               },
             },
-            colors: [globalRad.value, diffuseRad.value, directRad.value],
             dataLabels: {
               enabled: false,
             },
@@ -324,10 +367,45 @@
                 name: app.vueI18n.t('solarInfo.directRadMonths'), //'direct Rad. / Monat', //typmap.get(elm),
                 data: [6, 13, 3, 32, 7],
               },
+              {
+                name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [20, 20, 20, 20, 20],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [15, 15, 15, 15, 15],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [12, 12, 12, 12, 12],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [10, 10, 10, 10, 10],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.directRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [30, 30, 30, 30, 30],
+              },
+              {
+                name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                data: [25, 25, 25, 25, 25],
+              },
+            ],
+            colors: [
+              globalRad.value,
+              diffuseRad.value,
+              directRad.value,
+              globalWallRad.value,
+              globalRoofRad.value,
+              diffuseWallRad.value,
+              diffuseRoofRad.value,
+              directWallRad.value,
+              directRoofRad.value,
             ],
             chart: {
               foreColor: '#ccc',
-              height: 200,
+              height: 300,
               stacked: true,
               type: 'bar',
               animations: {
@@ -353,7 +431,6 @@
                 columnWidth: '35%',
               },
             },
-            colors: [globalRad.value, diffuseRad.value, directRad.value],
             dataLabels: {
               enabled: false,
             },

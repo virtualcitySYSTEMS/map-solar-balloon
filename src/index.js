@@ -111,10 +111,12 @@ export default function plugin(config, baseUrl) {
     i18n: {
       en: {
         solarInfo: {
-          editorHeader1: 'Settings of graph colors',
+          editorHeader1: 'Settings of graph representatiom',
           editorHint1:
             'Please type in here HEX-colors, like #FF7F50 (max. 6 digits)',
           editorHeader2: 'Graph preview',
+          editorHeader1_1: 'Setting of sum values (global, direct, diffuse)',
+          editorHeader1_2: 'color settings for themat. surfaces',
           graphType: 'graph type',
           balloonTitle: 'Solar data',
           chartTitle: 'Solar irradiation / Month [kWh]',
@@ -140,11 +142,14 @@ export default function plugin(config, baseUrl) {
       },
       de: {
         solarInfo: {
-          editorHeader1: 'Einstellung der Graphfarben',
+          editorHeader1: 'Einstellung für die Graphdarstellung',
           editorHint1:
             'Bitte tragen sie hier nur HEX-Farben ein, im Stil #FF7F50 (max. 6 Zeichen)',
           editorHeader2: 'Graphvorschau',
           graphType: 'Graphtyp',
+          editorHeader1_1:
+            'Einstellungen für Summenwerte (global, direct, diffuse)',
+          editorHeader1_2: 'Farbeinstellungen für themat. Flächen',
           balloonTitle: 'Solardaten',
           chartTitle: 'Solare Einstrahlung / Monat [kWh]',
           tableTitle: 'Jahreswerte im Überblick',

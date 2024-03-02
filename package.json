@@ -1,6 +1,6 @@
 {
   "name": "@vcmap/vcs-solar-balloon",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "provides solar balloon for vc solar layer",
   "type": "module",
   "main": "src/index.js",
