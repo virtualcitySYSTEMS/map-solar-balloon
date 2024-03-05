@@ -119,6 +119,7 @@ export default function plugin(config, baseUrl) {
           editorHeader1_2: 'color settings for themat. surfaces',
           graphType: 'graph type',
           balloonTitle: 'Solar data',
+          balloonHeader: 'Solar information',
           chartTitle: 'Solar irradiation / Month [kWh]',
           tableTitle: 'Overview of yearly values',
           tableCol1: 'name',
@@ -151,6 +152,7 @@ export default function plugin(config, baseUrl) {
             'Einstellungen für Summenwerte (global, direct, diffuse)',
           editorHeader1_2: 'Farbeinstellungen für themat. Flächen',
           balloonTitle: 'Solardaten',
+          balloonHeader: 'Solar information',
           chartTitle: 'Solare Einstrahlung / Monat [kWh]',
           tableTitle: 'Jahreswerte im Überblick',
           tableCol1: 'Name',
@@ -178,7 +180,13 @@ export default function plugin(config, baseUrl) {
      * @returns {Array<import("@vcmap/ui").PluginConfigEditor>}
      */
     getConfigEditors() {
-      return [{ component: SolarBalloonConfigEditor }];
+      return [
+        {
+          component: SolarBalloonConfigEditor,
+          collectionName: 'featureInfo',
+          itemName: solarFeatureInfo.className,
+        },
+      ];
     },
     destroy() {
       // eslint-disable-next-line no-console
