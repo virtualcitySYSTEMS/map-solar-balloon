@@ -8,7 +8,10 @@
   >
     <div id="solarWerte"></div>
     <!--div id="tableSolar"></div-->
-    <div style="margin-left: 1rem; margin-right: 1rem; margin-bottom: 1rem">
+    <div
+      style="margin-left: 1rem; margin-right: 1rem; margin-bottom: 1rem"
+      v-if="showDataTable"
+    >
       <h2>{{ $t('solarInfo.tableTitle') }}</h2>
       <v-simple-table
         dense
@@ -51,27 +54,9 @@
 
 <script>
   import { defineComponent, inject, ref, watch } from 'vue';
-  import {
-    BalloonComponent,
-    VcsButton,
-    VcsFormButton,
-    VcsFormSection,
-    VcsSelect,
-  } from '@vcmap/ui';
-  import {
-    VSheet,
-    VCol,
-    VContainer,
-    VListItem,
-    VListItemContent,
-    VListItemTitle,
-    VRow,
-    VIcon,
-    VListItemAvatar,
-    VSimpleTable,
-  } from 'vuetify/lib';
+  import { VSheet, VSimpleTable } from 'vuetify/lib';
   import ApexCharts from 'apexcharts';
-  import { name } from '../../package.json';
+  // import { name } from '../../package.json';
   /*   var typMapping = [
     ['globalRadMonths', 'glob. Rad / Monat'],
     ['globalRadWallsMonths', 'glob. Rad on Wall / Month'],
@@ -88,6 +73,47 @@
   export default defineComponent({
     name: 'SolarInfoComponent',
     props: {
+      chartType: {
+        type: String,
+        required: true,
+      },
+      globalColor: {
+        type: String,
+        required: true,
+      },
+      diffuseColor: {
+        type: String,
+        required: true,
+      },
+      directColor: {
+        type: String,
+        required: true,
+      },
+      globalWallColor: {
+        type: String,
+        required: true,
+      },
+      diffuseWallColor: {
+        type: String,
+        required: true,
+      },
+      globalRoofColor: {
+        type: String,
+        required: true,
+      },
+      directWallColor: {
+        type: String,
+        required: true,
+      },
+      diffuseRoofColor: {
+        type: String,
+        required: true,
+      },
+      directRoofColor: {
+        type: String,
+        required: true,
+      },
+
       featureId: {
         type: String,
         required: true,
@@ -99,56 +125,45 @@
     },
     components: {
       VSheet,
-      VCol,
-      VRow,
-      VContainer,
-      VListItemAvatar,
-      VIcon,
-      VcsButton,
-      VcsFormButton,
-      VcsFormSection,
-      VcsSelect,
-      VListItemTitle,
-      VListItemContent,
-      VListItem,
-      BalloonComponent,
       VSimpleTable,
     },
 
     setup(props) {
       /** @type { import("@vcmap/ui").VcsUiApp } */
       const app = inject('vcsApp');
-      const plugin = app.plugins.getByKey(name);
+      /*       const plugin = app.plugins.getByKey(name);
       const { config } = plugin;
-      console.log(config);
+      console.log(config); */
       const tableAttr = ref([]);
       const theme = ref('light');
       const lightColor = '#535A6C';
       const darkColor = '#ccc';
       const currentColor = ref(lightColor);
-      const chartType = ref(config.chartType);
-      let globalRad = {};
+      const chartType = ref(props.chartType);
+      const showDataTable = ref(props.showDataTable);
+      const globalColor = ref(props.globalColor);
+      const diffuseColor = ref(props.diffuseColor);
+      const directColor = ref(props.directColor);
+      const globalWallColor = ref(props.globalWallColor);
+      const diffuseWallColor = ref(props.diffuseWallColor);
+      const globalRoofColor = ref(props.globalRoofColor);
+      const directWallColor = ref(props.directWallColor);
+      const diffuseRoofColor = ref(props.diffuseRoofColor);
+      const directRoofColor = ref(props.directRoofColor);
+      /*       let globalRad = {};
       let diffuseRad = {};
       let directRad = {};
       let globalArray = [];
       let diffuseArray = [];
-      let directArray = [];
-      app.localeChanged.addEventListener((locale) => {
-        //console.log('Locale changed', locale);
-        setup();
-      });
-      app.themeChanged.addEventListener(() => {
-        if (theme.value === 'light') {
-          theme.value = 'dark';
-          currentColor.value = darkColor;
-        } else {
-          theme.value = 'light';
-          currentColor.value = lightColor;
+      let directArray = []; */
+      function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
         }
-        setup();
-      });
-
-      watch(props, setup, { immediate: true });
+        return color;
+      }
       function createChart(
         globalRad,
         diffuseRad,
@@ -157,17 +172,17 @@
         diffuseArray,
         directArray,
       ) {
-        var globalSum = 0;
-        var diffuseSum = 0;
-        var directSum = 0;
-        var globalSumRoof = 0;
-        var diffuseSumRoof = 0;
-        var directSumRoof = 0;
-        var globalSumWalls = 0;
-        var diffuseSumWalls = 0;
-        var directSumWalls = 0;
+        let globalSum = 0;
+        let diffuseSum = 0;
+        let directSum = 0;
+        let globalSumRoof = 0;
+        let diffuseSumRoof = 0;
+        let directSumRoof = 0;
+        let globalSumWalls = 0;
+        let diffuseSumWalls = 0;
+        let directSumWalls = 0;
 
-        var xAxis = [
+        const xAxis = [
           'Jan',
           'Feb',
           'Mar',
@@ -232,7 +247,7 @@
             /*    subtitle: {
       text: 'Solare Einstrahlung / Monat [kWh]',
       align: 'left'
-    },*/
+    }, */
             title: {
               text: app.vueI18n.t('solarInfo.chartTitle'),
               align: 'left',
@@ -315,27 +330,27 @@
         }
 
         globalArray.month.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(globalRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              //console.log(Number(key.split('_')[1])+' :'+value);
+              // console.log(Number(key.split('_')[1])+' :'+value);
               data[Number(key.split('_')[1]) - 1] =
                 Math.round(value * 100) / 100;
               globalSum += value;
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.globalRadMonths'), //'glob. Rad / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.globalRadMonths'), // 'glob. Rad / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.globalColor)) {
-            options.colors.push(config.globalColor);
+          if (!options.colors.includes(globalColor.value)) {
+            options.colors.push(globalColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
         });
         globalArray.walls.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(globalRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               data[Number(key.split('_')[1]) - 1] =
@@ -344,17 +359,17 @@
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), //'glob. Rad der Wand / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), // 'glob. Rad der Wand / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.globaWallColor)) {
-            options.colors.push(config.globaWallColor);
+          if (!options.colors.includes(globalWallColor.value)) {
+            options.colors.push(globalWallColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
         });
         globalArray.roofs.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(globalRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
               data[Number(key.split('_')[1]) - 1] =
@@ -363,131 +378,131 @@
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), //'glob. Rad des Daches / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), // 'glob. Rad des Daches / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.globaRoofColor)) {
-            options.colors.push(config.globaRoofColor);
+          if (!options.colors.includes(globalRoofColor.value)) {
+            options.colors.push(globalRoofColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
         });
         diffuseArray.month.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(diffuseRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              //console.log(Number(key.split('_')[1])+' :'+value);
+              // console.log(Number(key.split('_')[1])+' :'+value);
               data[Number(key.split('_')[1]) - 1] =
                 Math.round(value * 100) / 100;
               diffuseSum += value;
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.diffuseRadMonths'), //'diff. Rad / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.diffuseRadMonths'), // 'diff. Rad / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.diffuseColor)) {
-            options.colors.push(config.diffuseColor);
+          if (!options.colors.includes(diffuseColor.value)) {
+            options.colors.push(diffuseColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
         });
         diffuseArray.walls.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(diffuseRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              //console.log(Number(key.split('_')[1])+' :'+value);
+              // console.log(Number(key.split('_')[1])+' :'+value);
               data[Number(key.split('_')[1]) - 1] =
                 Math.round(value * 100) / 100;
               diffuseSumWalls += value;
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), //'diff. Rad der Wand / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), // 'diff. Rad der Wand / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.diffuseWallColor)) {
-            options.colors.push(config.diffuseWallColor);
+          if (!options.colors.includes(diffuseWallColor.value)) {
+            options.colors.push(diffuseWallColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
         });
         diffuseArray.roofs.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(diffuseRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              //console.log(Number(key.split('_')[1])+' :'+value);
+              // console.log(Number(key.split('_')[1])+' :'+value);
               data[Number(key.split('_')[1]) - 1] =
                 Math.round(value * 100) / 100;
               diffuseSumRoof += value;
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), //'diff. Rad des Daches / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), // 'diff. Rad des Daches / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.diffuseRoofColor)) {
-            options.colors.push(config.diffuseRoofColor);
+          if (!options.colors.includes(diffuseRoofColor.value)) {
+            options.colors.push(diffuseRoofColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
         });
         directArray.month.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(directRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              //console.log(Number(key.split('_')[1])+' :'+value);
+              // console.log(Number(key.split('_')[1])+' :'+value);
               data[Number(key.split('_')[1]) - 1] =
                 Math.round(value * 100) / 100;
               directSum += value;
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.directRadMonths'), //'dir. Rad / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.directRadMonths'), // 'dir. Rad / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.directColor)) {
-            options.colors.push(config.directColor);
+          if (!options.colors.includes(directColor.value)) {
+            options.colors.push(directColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
         });
         directArray.walls.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(directRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              //console.log(Number(key.split('_')[1])+' :'+value);
+              // console.log(Number(key.split('_')[1])+' :'+value);
               data[Number(key.split('_')[1]) - 1] =
                 Math.round(value * 100) / 100;
               directSumWalls += value;
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.directRadWallsMonths'), //'dir. Rad der Wand / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.directRadWallsMonths'), // 'dir. Rad der Wand / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.directWallColor)) {
-            options.colors.push(config.directWallColor);
+          if (!options.colors.includes(directWallColor.value)) {
+            options.colors.push(directWallColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
         });
         directArray.roofs.forEach((elm) => {
-          var data = [];
+          const data = [];
           Object.entries(directRad).forEach(([key, value]) => {
             if (key.includes(elm)) {
-              //console.log(Number(key.split('_')[1])+' :'+value);
+              // console.log(Number(key.split('_')[1])+' :'+value);
               data[Number(key.split('_')[1]) - 1] =
                 Math.round(value * 100) / 100;
               directSumRoof += value;
             }
           });
           options.series.push({
-            name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), //'dir. Rad des Daches / Monat', //typmap.get(elm),
-            data: data,
+            name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), // 'dir. Rad des Daches / Monat', //typmap.get(elm),
+            data,
           });
-          if (!options.colors.includes(config.directRoofColor)) {
-            options.colors.push(config.directRoofColor);
+          if (!options.colors.includes(directRoofColor.value)) {
+            options.colors.push(directRoofColor.value);
           } else {
             options.colors.push(getRandomColor());
           }
@@ -500,50 +515,43 @@
         chart.render();
         return [
           { globSum: globalSum },
-          { globalSumRoof: globalSumRoof },
-          { globalSumWalls: globalSumWalls },
-          { diffuseSum: diffuseSum },
-          { diffuseSumRoof: diffuseSumRoof },
-          { diffuseSumWalls: diffuseSumWalls },
-          { directSum: directSum },
-          { directSumRoof: directSumRoof },
-          { directSumWalls: directSumWalls },
+          { globalSumRoof },
+          { globalSumWalls },
+          { diffuseSum },
+          { diffuseSumRoof },
+          { diffuseSumWalls },
+          { directSum },
+          { directSumRoof },
+          { directSumWalls },
         ];
       }
       function splitSolarAttr(array) {
-        var month = array.filter((el) => el.includes('RadMonth'));
-        var walls = array.filter(
+        const month = array.filter((el) => el.includes('RadMonth'));
+        const walls = array.filter(
           (el) => el.includes('RadWalls') && !el.includes('Year'),
         );
-        var roofs = array.filter(
+        const roofs = array.filter(
           (el) => el.includes('RadRoofs') && !el.includes('Year'),
         );
-        var year = array.filter((el) => el.includes('Year'));
-        return { month: month, walls: walls, roofs: roofs, year: year };
+        const year = array.filter((el) => el.includes('Year'));
+        return { month, walls, roofs, year };
       }
-      function getRandomColor() {
-        var letters = '0123456789ABCDEF';
-        var color = '#';
-        for (var i = 0; i < 6; i++) {
-          color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
-      }
+
       function scanForSolar(globalRad, diffuseRad, directRad, skyview) {
-        var uniqueGlobalRadKeys = [
+        const uniqueGlobalRadKeys = [
           ...new Set(Object.keys(globalRad).map((el) => el.split('_')[0])),
         ];
-        var uniqueDiffuseRadKeys = [
+        const uniqueDiffuseRadKeys = [
           ...new Set(Object.keys(diffuseRad).map((el) => el.split('_')[0])),
         ];
-        var uniqueDirectRadKeys = [
+        const uniqueDirectRadKeys = [
           ...new Set(Object.keys(directRad).map((el) => el.split('_')[0])),
         ];
 
-        globalArray = splitSolarAttr(uniqueGlobalRadKeys);
-        diffuseArray = splitSolarAttr(uniqueDiffuseRadKeys);
-        directArray = splitSolarAttr(uniqueDirectRadKeys);
-        var props = createChart(
+        const globalArray = splitSolarAttr(uniqueGlobalRadKeys);
+        const diffuseArray = splitSolarAttr(uniqueDiffuseRadKeys);
+        const directArray = splitSolarAttr(uniqueDirectRadKeys);
+        const properties = createChart(
           globalRad,
           diffuseRad,
           directRad,
@@ -552,50 +560,63 @@
           directArray,
         );
 
-        tableAttr.value = props.concat(skyview);
+        tableAttr.value = properties.concat(skyview);
       }
       function setup() {
         const raw = props.attributes;
-        globalRad = Object.keys(raw)
+        const globalRad = Object.keys(raw)
           .filter((key) => key.includes('globalRad'))
           .reduce((obj, key) => {
             obj[key] = raw[key];
             return obj;
           }, {});
-        diffuseRad = Object.keys(raw)
+        const diffuseRad = Object.keys(raw)
           .filter((key) => key.includes('diffuseRad'))
           .reduce((obj, key) => {
             obj[key] = raw[key];
             return obj;
           }, {});
-        directRad = Object.keys(raw)
+        const directRad = Object.keys(raw)
           .filter((key) => key.includes('directRad'))
           .reduce((obj, key) => {
             obj[key] = raw[key];
             return obj;
           }, {});
-        var svfMax = raw.SVF_max || 0;
-        var svfMin = raw.SVF_min || 0;
-        var svfMean = raw.SVF_med || 0;
-        var skyview = [
+        const svfMax = raw.SVF_max || 0;
+        const svfMin = raw.SVF_min || 0;
+        const svfMean = raw.SVF_med || 0;
+        const skyview = [
           { svfMax: svfMax * 100 },
           { svfMin: svfMin * 100 },
           { svfMean: svfMean * 100 },
         ];
-        setTimeout(function () {
-          var chart = document.getElementById('solarWerte');
+        setTimeout(() => {
+          const chart = document.getElementById('solarWerte');
           if (chart) {
             chart.innerHTML = '';
           }
           scanForSolar(globalRad, diffuseRad, directRad, skyview);
         }, 1);
-        //scanForSolar(globalRad, diffuseRad, directRad, skyview);
+        // scanForSolar(globalRad, diffuseRad, directRad, skyview);
       }
+      app.localeChanged.addEventListener(() => {
+        // console.log('Locale changed', locale);
+        setup();
+      });
+      app.themeChanged.addEventListener(() => {
+        if (theme.value === 'light') {
+          theme.value = 'dark';
+          currentColor.value = darkColor;
+        } else {
+          theme.value = 'light';
+          currentColor.value = lightColor;
+        }
+        setup();
+      });
 
+      watch(props, setup, { immediate: true });
       return {
-        toggle() {
-          active.value = !active.value;
-        },
+        showDataTable,
         tableAttr,
       };
     },

@@ -9,6 +9,7 @@ export default () => {
     globalRoofColor: '#50ffd7',
     diffuseRoofColor: '#ff0080',
     directRoofColor: '#0b94b8',
-    chartType: 'Bar',
+    chartType: 'Line',
+    showDataTable: true,
   };
 };
