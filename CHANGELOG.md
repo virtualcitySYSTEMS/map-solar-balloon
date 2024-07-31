@@ -15,3 +15,9 @@ added plugin editor for app-configurator
 
 - added support of thematic surface settings in plugin editor
 - added support of thematic surfaces representation in balloon
+
+# v1.0.4
+
+- fixes an issue with plugin config editor
+- added color selector to plugin config editor
+- added i18n translation for charts and colors

@@ -1,4 +1,4 @@
-export function getConfig(pluginOptions, defaultOptions) {
+export default function getConfig(pluginOptions, defaultOptions) {
   const globalColor = pluginOptions.globalColor || defaultOptions.globalColor;
   const diffuseColor =
     pluginOptions.diffuseColor || defaultOptions.diffuseColor;

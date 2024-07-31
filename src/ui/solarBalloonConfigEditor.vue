@@ -12,12 +12,68 @@
           <VcsSelect
             id="selectInput"
             :items="selectOptions"
+            :item-text="(item) => item.i18n"
             dense
             v-model="selected"
             @change="createChart"
           />
         </v-col>
       </v-row>
+      <v-row no-gutters class="d-flex justify-end">
+        <v-col cols="8">
+          <VcsLabel html-for="selectInput" dense>
+            {{ $t('solarInfo.showDataTable') }}
+          </VcsLabel>
+        </v-col>
+        <v-col cols="4">
+          <VcsCheckbox
+            id="solarInfo-dataTable"
+            label=""
+            :true-value="true"
+            :false-value="false"
+            v-model="showDataTable"
+          />
+        </v-col>
+      </v-row>
+
+      <v-row no-gutters class="mb-2">
+        <v-col cols="8">
+          <VcsLabel html-for="selectInput" dense>
+            {{ $t('solarInfo.colors') }}
+          </VcsLabel>
+        </v-col>
+        <v-col cols="4">
+          <!--v-select-->
+          <VcsSelect
+            id="selectColor"
+            :items="availableColorScaleNames"
+            :item-text="(item) => item.i18n"
+            dense
+            v-model="selectedColorScheme"
+            :height="24"
+            append-icon="mdi-chevron-down"
+            class="py-1 primary--placeholder"
+          >
+            <template #item="{ item }">
+              <div
+                :style="`background: linear-gradient(90deg, ${getColorPalette(item.value)});`"
+                class="mr-1 color-preview-box"
+              />
+              <span>{{ $t(item.i18n) }} </span>
+            </template>
+            <!--template #prepend>
+              <div
+                :style="`background: linear-gradient(90deg, ${previewColorScale});`"
+                class="color-preview-box"
+              />
+            </template-->
+          </VcsSelect>
+        </v-col>
+      </v-row>
+      <v-divider class="mt-2 mb-2" style="border-top: 2px solid #bbb" />
+      <h6>
+        <small class="black--text">{{ $t('solarInfo.colorsIndiv') }}</small>
+      </h6>
       <VcsFormSection
         :heading="$t('solarInfo.editorHeader1_1')"
         expandable
@@ -157,7 +213,9 @@
           /></v-col>
         </v-row>
       </VcsFormSection>
+      <v-divider class="mt-2 mb-2" style="border-top: 2px solid #bbb" />
     </div>
+
     <div class="ma-5">
       <h2>{{ $t('solarInfo.editorHeader2') }}</h2>
       <div id="solarPreview"></div>
@@ -166,21 +224,21 @@
 </template>
 
 <script>
-  import { VContainer, VRow, VCol, VTextField } from 'vuetify/lib';
+  import { VContainer, VRow, VCol, VTextField, VDivider } from 'vuetify/lib';
   import {
     AbstractConfigEditor,
     VcsFormSection,
     VcsSelect,
     VcsLabel,
+    VcsCheckbox,
   } from '@vcmap/ui';
-  import { onMounted, watch, ref, inject } from 'vue';
-  import getDefaultOptions from '../js/defaultOptions.js';
-  import { parseColor } from '@vcmap/core';
-  import { Fill, Icon, RegularShape, Stroke, Style, Text } from 'ol/style.js';
-  import { name } from '../../package.json';
+  import { getLogger } from '@vcsuite/logger';
+  import { ref, inject, computed, watch } from 'vue';
   import ApexCharts from 'apexcharts';
-
-  export const defaultOptions = {};
+  import { name } from '../../package.json';
+  // import { name } from '../../package.json';
+  import getDefaultOptions from '../js/defaultOptions.js';
+  import colorPalette from '../js/colorPalettes.js';
 
   export default {
     name: 'SolarBalloonConfigEditor',
@@ -194,6 +252,8 @@
       VTextField,
       VcsSelect,
       VcsLabel,
+      VcsCheckbox,
+      VDivider,
     },
     props: {
       getConfig: {
@@ -209,74 +269,72 @@
     setup(props) {
       /** @type { import("@vcmap/ui").VcsUiApp } */
       const app = inject('vcsApp');
-      app.localeChanged.addEventListener((locale) => {
-        //console.log('Locale changed', locale);
-        createChart();
-      });
-      const plugin = app.plugins.getByKey(name);
-      const { config } = plugin;
-      const localConfig = ref(config);
-      const elm = document.getElementById('solarPreview');
-      //console.log(config);
+      const localConfig = ref(undefined);
+
+      //  const plugin = app.plugins.getByKey(name);
+      //  const { config } = plugin;
+      // console.log(config);
       const defaultOptions = getDefaultOptions();
-      const globalRad = ref(localConfig.value.globalColor);
-      const diffuseRad = ref(localConfig.value.diffuseColor);
-      const directRad = ref(localConfig.value.directColor);
-      const globalWallRad = ref(localConfig.value.globalWallColor);
-      const diffuseWallRad = ref(localConfig.value.diffuseWallColor);
-      const directWallRad = ref(localConfig.value.directWallColor);
-      const globalRoofRad = ref(localConfig.value.globalRoofColor);
-      const diffuseRoofRad = ref(localConfig.value.diffuseRoofColor);
-      const directRoofRad = ref(localConfig.value.directRoofColor);
-      const selected = ref('Line');
-      setTimeout(() => {
-        createChart();
-      }, 1);
+
+      const globalRad = ref(defaultOptions.globalColor);
+      const diffuseRad = ref(defaultOptions.diffuseColor);
+      const directRad = ref(defaultOptions.directColor);
+      const globalWallRad = ref(defaultOptions.globalWallColor);
+      const diffuseWallRad = ref(defaultOptions.diffuseWallColor);
+      const directWallRad = ref(defaultOptions.directWallColor);
+      const globalRoofRad = ref(defaultOptions.globalRoofColor);
+      const diffuseRoofRad = ref(defaultOptions.diffuseRoofColor);
+      const directRoofRad = ref(defaultOptions.directRoofColor);
+      const selected = ref(defaultOptions.chartType);
+      const showDataTable = ref(defaultOptions.showDataTable);
+      const colorScaleNameRef = ref('colorblind');
+      const selectedColorScheme = ref(colorScaleNameRef);
+
       function createChart() {
-        console.log(selected.value);
-        var chart = document.getElementById('solarPreview');
+        // console.log(selected.value);
+        let chart = document.getElementById('solarPreview');
         if (chart) {
           chart.innerHTML = '';
         }
-        var xAxis = ['Jan', '...', '...', '...', 'Dec'];
+        const xAxis = ['Jan', '...', '...', '...', 'Dec'];
         let options;
         if (selected.value === 'Line') {
           options = {
             series: [
               {
-                name: app.vueI18n.t('solarInfo.globalRadMonths'), //'glob. Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.globalRadMonths'), // 'glob. Rad. / Monat', //typmap.get(elm),
                 data: [10, 23, 45, 8, 26],
               },
               {
-                name: app.vueI18n.t('solarInfo.diffuseRadMonths'), //'diff. Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.diffuseRadMonths'), // 'diff. Rad. / Monat', //typmap.get(elm),
                 data: [1, 45, 2, 6, 23],
               },
               {
-                name: app.vueI18n.t('solarInfo.directRadMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.directRadMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [6, 13, 3, 32, 7],
               },
               {
-                name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [20, 20, 20, 20, 20],
               },
               {
-                name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [15, 15, 15, 15, 15],
               },
               {
-                name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [12, 12, 12, 12, 12],
               },
               {
-                name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [10, 10, 10, 10, 10],
               },
               {
-                name: app.vueI18n.t('solarInfo.directRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.directRadWallsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [30, 30, 30, 30, 30],
               },
               {
-                name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [25, 25, 25, 25, 25],
               },
             ],
@@ -356,39 +414,39 @@
           options = {
             series: [
               {
-                name: app.vueI18n.t('solarInfo.globalRadMonths'), //'glob. Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.globalRadMonths'), // 'glob. Rad. / Monat', //typmap.get(elm),
                 data: [10, 23, 45, 8, 26],
               },
               {
-                name: app.vueI18n.t('solarInfo.diffuseRadMonths'), //'diff. Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.diffuseRadMonths'), // 'diff. Rad. / Monat', //typmap.get(elm),
                 data: [1, 45, 2, 6, 23],
               },
               {
-                name: app.vueI18n.t('solarInfo.directRadMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.directRadMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [6, 13, 3, 32, 7],
               },
               {
-                name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.globalRadWallsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [20, 20, 20, 20, 20],
               },
               {
-                name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.globalRadRoofsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [15, 15, 15, 15, 15],
               },
               {
-                name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.diffuseRadWallsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [12, 12, 12, 12, 12],
               },
               {
-                name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.diffuseRadRoofsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [10, 10, 10, 10, 10],
               },
               {
-                name: app.vueI18n.t('solarInfo.directRadWallsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.directRadWallsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [30, 30, 30, 30, 30],
               },
               {
-                name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), //'direct Rad. / Monat', //typmap.get(elm),
+                name: app.vueI18n.t('solarInfo.directRadRoofsMonths'), // 'direct Rad. / Monat', //typmap.get(elm),
                 data: [25, 25, 25, 25, 25],
               },
             ],
@@ -627,23 +685,87 @@
         );
         chart.render();
       }
+      function getColorPalette(scaleName) {
+        return colorPalette[scaleName];
+      }
+      app.localeChanged.addEventListener(() => {
+        // console.log('Locale changed', locale);
+        createChart();
+      });
+      watch(
+        selectedColorScheme,
+        () => {
+          // console.log(selectedColorScheme.value);
+          const colors = getColorPalette(selectedColorScheme.value);
+          globalRad.value = colors[0];
+          diffuseRad.value = colors[1];
+          directRad.value = colors[2];
+          globalWallRad.value = colors[3];
+          diffuseWallRad.value = colors[4];
+          directWallRad.value = colors[5];
+          globalRoofRad.value = colors[6];
+          diffuseRoofRad.value = colors[7];
+          directRoofRad.value = colors[8];
+          setTimeout(() => {
+            createChart();
+          }, 1);
+        },
+        { immediate: true },
+      );
+      props
+        .getConfig()
+        .then((config) => {
+          localConfig.value = { ...config, ...defaultOptions };
+          globalRad.value = localConfig.value.globalColor;
+          diffuseRad.value = localConfig.value.diffuseColor;
+          directRad.value = localConfig.value.directColor;
+          globalWallRad.value = localConfig.value.globalWallColor;
+          diffuseWallRad.value = localConfig.value.diffuseWallColor;
+          directWallRad.value = localConfig.value.directWallColor;
+          globalRoofRad.value = localConfig.value.globalRoofColor;
+          diffuseRoofRad.value = localConfig.value.diffuseRoofColor;
+          directRoofRad.value = localConfig.value.directRoofColor;
+          selected.value = localConfig.value.chartType;
+          showDataTable.value = localConfig.value.showDataTable;
+          createChart();
+        })
+        .catch((err) => getLogger(name).error(err));
+      setTimeout(() => {
+        createChart();
+      }, 1);
+
       const apply = async () => {
-        const configuration = await props.getConfig();
-        configuration.globalColor = globalRad.value;
-        configuration.diffuseColor = diffuseRad.value;
-        configuration.directColor = directRad.value;
-        configuration.globalWallColor = globalWallRad.value;
-        configuration.diffuseWallColor = diffuseWallRad.value;
-        configuration.directWallColor = directWallRad.value;
-        configuration.globalRoofColor = globalRoofRad.value;
-        configuration.diffuseRoofColor = diffuseRoofRad.value;
-        configuration.directRoofColor = directRoofRad.value;
-        configuration.chartType = selected.value;
-        await props.setConfig(configuration);
+        // const configuration = await props.getConfig();
+        localConfig.value.globalColor = globalRad.value;
+        localConfig.value.diffuseColor = diffuseRad.value;
+        localConfig.value.directColor = directRad.value;
+        localConfig.value.globalWallColor = globalWallRad.value;
+        localConfig.value.diffuseWallColor = diffuseWallRad.value;
+        localConfig.value.directWallColor = directWallRad.value;
+        localConfig.value.globalRoofColor = globalRoofRad.value;
+        localConfig.value.diffuseRoofColor = diffuseRoofRad.value;
+        localConfig.value.directRoofColor = directRoofRad.value;
+        localConfig.value.chartType = selected.value;
+        localConfig.value.showDataTable = showDataTable.value;
+        await props.setConfig(localConfig.value);
       };
 
       return {
-        //localConfig,
+        // localConfig,
+        availableColorScaleNames: Object.keys(colorPalette).map((el) => {
+          return { value: el, i18n: `solarInfo.colorNames.${el}` };
+        }),
+        colorScaleName: computed({
+          get: () => colorScaleNameRef.value,
+          set(value) {
+            colorScaleNameRef.value = value;
+          },
+        }),
+        previewColorScale: computed(() =>
+          getColorPalette(selectedColorScheme.value),
+        ),
+        showDataTable,
+        getColorPalette,
         apply,
         globalRad,
         directRad,
@@ -655,9 +777,22 @@
         directRoofRad,
         diffuseRoofRad,
         selected,
+        selectedColorScheme,
         createChart,
-        selectOptions: ['Line', 'Bar'],
+        selectOptions: [
+          { value: 'Line', i18n: 'solarInfo.charts.Line' },
+          { value: 'Bar', i18n: 'solarInfo.charts.Bar' },
+        ], // ['Line', 'Bar'],
       };
     },
   };
 </script>
+
+<style scoped>
+  .color-preview-box {
+    width: 20px;
+    height: 20px;
+    border: 1px solid black;
+    box-sizing: content-box;
+  }
+</style>

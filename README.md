@@ -18,22 +18,13 @@ einen Eindruck davon, wie die Graphen in der VC-Map aussehen werden.
 
 Konfiguration des Plugin für Feature Info im App-Konfigurator:
 
-1. ein Element in der Kategorie FeatureInfo hinzufügen
-2. Element auswählen und im Overflowmenü JSON-Editor auswählen
-3. im JSON Editor folgendes einfügen:
-   {
-   "type": "SolarFeatureInfo",
-   "name": "SolarFeatureInfo",
-   "window": {
-   "position": {
-   "width": "500px"
-   }
-   }
-   }
-4. den / die entsprechenden Layer mit dem SolarFeatureInfo verknüpfen
+1. ein SolarFeatureInfo Element in der Kategorie FeatureInfo hinzufügen und anpassen
+2. um den Namen oder die Fenstergößen anzupassen, im Overflow "FeatureInfo" auswählen und die entsprechenden Anpassungen vornehmen.
+   Hier stehen alle grundsätzlichen Funktionen von FeatureInfo zur Verfügung.
+3. den / die entsprechenden Layer mit dem SolarFeatureInfo verknüpfen
    => Layer auswählen und bearbeiten => Handhabung in der Karte öffnen
    => FeatureInfo => SolarFeatureInfo auswählen
-5. Speichern
+4. Speichern
 
 ======================ENDE DE================================================
 
@@ -52,21 +43,12 @@ give an impression of how the graphs will look in the VC map.
 
 Configuration of the Feature Info plugin in the app configurator:
 
-1. add an element in the FeatureInfo category
-2. select element and select JSON Editor in the overflow menu
-3. Insert the following in the JSON editor:
-   {
-   "type": "SolarFeatureInfo",
-   "name": "SolarFeatureInfo",
-   "window": {
-   "position": {
-   "width": "500px"
-   }
-   }
-   }
-4. Link the corresponding layer(s) to the SolarFeatureInfo
+1. add SolarFeatureInfo to your FeatureInfo views and adjust it to your needs
+2. To adjust the name or window sizes, select "FeatureInfo" in the overflow menu
+   and make the necessary adjustments. All the basic functions of FeatureInfo are available here.
+3. Link the corresponding layer(s) to the SolarFeatureInfo
    => Select and edit layer => Open handling in the map
    => FeatureInfo => Select SolarFeatureInfo
-5. save
+4. save
 
 ======================END EN================================================

@@ -2,8 +2,8 @@ import { name, version, mapVersion } from '../package.json';
 import SolarBalloonConfigEditor from './ui/solarBalloonConfigEditor.vue';
 import solarFeatureInfo from './js/solarFeatureInfo.js';
 import getDefaultOptions from './js/defaultOptions.js';
-import { getConfig } from './js/configManager.js';
-import deepEqual from 'fast-deep-equal';
+import de from './i18n/de.json';
+import en from './i18n/en.json';
 
 /**
  * @typedef {Object} PluginState
@@ -12,16 +12,17 @@ import deepEqual from 'fast-deep-equal';
 
 /**
  * Implementation of VcsPlugin interface. This function should not throw! Put exceptions in initialize instead.
- * @param {T} config - the configuration of this plugin instance, passed in from the app.
+ * @param {T} options - the configuration of this plugin instance, passed in from the app.
  * @param {string} baseUrl - the absolute URL from which the plugin was loaded (without filename, ending on /)
  * @returns {import("@vcmap/ui/src/vcsUiApp").VcsPlugin<T, PluginState>}
  * @template {Object} T
  */
-export default function plugin(config, baseUrl) {
+export default function plugin(options, baseUrl) {
+  const defaultOptions = getDefaultOptions();
+  const config = { ...defaultOptions, ...options };
   // eslint-disable-next-line no-console
   console.log(config, baseUrl);
   return {
-    //config,
     /** @returns {import("./configManager").pluginConfig} */
     get config() {
       return config;
@@ -42,9 +43,6 @@ export default function plugin(config, baseUrl) {
      * @returns {Promise<void>}
      */
     initialize: async (vcsUiApp, state) => {
-      const { pluginConfig } = getConfig(config, getDefaultOptions());
-      config = pluginConfig;
-
       // eslint-disable-next-line no-console
       vcsUiApp.featureInfoClassRegistry.registerClass(
         name,
@@ -52,6 +50,7 @@ export default function plugin(config, baseUrl) {
         solarFeatureInfo,
       );
 
+      // eslint-disable-next-line no-console
       console.log(
         'Called before loading the rest of the current context. Passed in the containing Vcs UI App ',
         vcsUiApp,
@@ -81,20 +80,40 @@ export default function plugin(config, baseUrl) {
     toJSON() {
       // eslint-disable-next-line no-console
       console.log('Called when serializing this plugin instance');
-      const defaultOptions = getDefaultOptions();
-      const flatConfig = {
-        globalColor: config.globalColor,
-        diffuseColor: config.diffuseColor,
-        directColor: config.directColor,
-      };
-      const customOptions = Object.keys(flatConfig).reduce((acc, key) => {
-        if (!deepEqual(defaultOptions[key], flatConfig[key])) {
-          acc[key] = flatConfig[key];
-        }
-        return acc;
-      }, {});
-
-      return flatConfig;
+      if (this.config.globalColor !== defaultOptions.globalColor) {
+        options.globalColor = this.config.globalColor;
+      }
+      if (this.config.diffuseColor !== defaultOptions.diffuseColor) {
+        options.diffuseColor = this.config.diffuseColor;
+      }
+      if (this.config.directColor !== defaultOptions.directColor) {
+        options.directColor = this.config.directColor;
+      }
+      if (this.config.globalWallColor !== defaultOptions.globalWallColor) {
+        options.globalWallColor = this.config.globalWallColor;
+      }
+      if (this.config.diffuseWallColor !== defaultOptions.diffuseWallColor) {
+        options.diffuseWallColor = this.config.diffuseWallColor;
+      }
+      if (this.config.globalRoofColor !== defaultOptions.globalRoofColor) {
+        options.globalRoofColor = this.config.globalRoofColor;
+      }
+      if (this.config.directWallColor !== defaultOptions.directWallColor) {
+        options.directWallColor = this.config.directWallColor;
+      }
+      if (this.config.diffuseRoofColor !== defaultOptions.diffuseRoofColor) {
+        options.diffuseRoofColor = this.config.diffuseRoofColor;
+      }
+      if (this.config.directRoofColor !== defaultOptions.directRoofColor) {
+        options.directRoofColor = this.config.directRoofColor;
+      }
+      if (this.config.chartType !== defaultOptions.chartType) {
+        options.chartType = this.config.chartType;
+      }
+      if (this.config.showDataTable !== defaultOptions.showDataTable) {
+        options.showDataTable = this.config.showDataTable;
+      }
+      return options;
     },
     /**
      * should return the plugins state
@@ -108,73 +127,7 @@ export default function plugin(config, baseUrl) {
         prop: '*',
       };
     },
-    i18n: {
-      en: {
-        solarInfo: {
-          editorHeader1: 'Settings of graph representatiom',
-          editorHint1:
-            'Please type in here HEX-colors, like #FF7F50 (max. 6 digits)',
-          editorHeader2: 'Graph preview',
-          editorHeader1_1: 'Setting of sum values (global, direct, diffuse)',
-          editorHeader1_2: 'color settings for themat. surfaces',
-          graphType: 'graph type',
-          balloonTitle: 'Solar data',
-          balloonHeader: 'Solar information',
-          chartTitle: 'Solar irradiation / Month [kWh]',
-          tableTitle: 'Overview of yearly values',
-          tableCol1: 'name',
-          tableCol2: 'value',
-          globalRadMonths: 'glob. Rad / Month',
-          globalRadWallsMonths: 'glob. Rad on Wall / Month',
-          globalRadRoofsMonths: 'glob. Rad on Roof / Month',
-          diffuseRadMonths: 'diff. Rad / Month',
-          diffuseRadWallsMonths: 'diff. Rad on Wall / Month',
-          diffuseRadRoofsMonths: 'diff. Rad on Roof / Month',
-          directRadMonths: 'dir. Rad / Month',
-          directRadWallsMonths: 'dir. Rad on Wall / Month',
-          directRadRoofsMonths: 'dir. Rad on Roof / Month',
-          globSum: 'Sum global radiation [kwh]',
-          directSum: 'Sum direct radiation [kwh]',
-          diffuseSum: 'Sum diffuse radiation [kwh]',
-          svfMax: 'maximum Skyview-Factor [%]',
-          svfMean: 'mean Skyview-Factor [%]',
-          svfMin: 'minimum Skyview-Factor [%]',
-        },
-      },
-      de: {
-        solarInfo: {
-          editorHeader1: 'Einstellung für die Graphdarstellung',
-          editorHint1:
-            'Bitte tragen sie hier nur HEX-Farben ein, im Stil #FF7F50 (max. 6 Zeichen)',
-          editorHeader2: 'Graphvorschau',
-          graphType: 'Graphtyp',
-          editorHeader1_1:
-            'Einstellungen für Summenwerte (global, direct, diffuse)',
-          editorHeader1_2: 'Farbeinstellungen für themat. Flächen',
-          balloonTitle: 'Solardaten',
-          balloonHeader: 'Solar information',
-          chartTitle: 'Solare Einstrahlung / Monat [kWh]',
-          tableTitle: 'Jahreswerte im Überblick',
-          tableCol1: 'Name',
-          tableCol2: 'Wert',
-          globalRadMonths: 'glob. Rad / Monat',
-          globalRadWallsMonths: 'glob. Rad der Wand / Monat',
-          globalRadRoofsMonths: 'glob. Rad des Daches / Monat',
-          diffuseRadMonths: 'diff. Rad / Monat',
-          diffuseRadWallsMonths: 'diff. Rad der Wand / Monat',
-          diffuseRadRoofsMonths: 'diff. Rad des Daches / Monat',
-          directRadMonths: 'dir. Rad / Monat',
-          directRadWallsMonths: 'dir. Rad der Wand / Monat',
-          directRadRoofsMonths: 'dir. Rad des Daches / Monat',
-          globSum: 'Summe der globalen Einstrahlung [kwh]',
-          directSum: 'Summe der direkten Einstrahlung [kwh]',
-          diffuseSum: 'Summe der diffusen Einstrahlung [kwh]',
-          svfMax: 'maximaler Skyview-Faktor [%]',
-          svfMean: 'durchschnttl. Skyview-Faktor [%]',
-          svfMin: 'minimaler Skyview-Faktor [%]',
-        },
-      },
-    },
+    i18n: { en, de },
     /**
      * components for configuring the plugin and/ or custom items defined by the plugin
      * @returns {Array<import("@vcmap/ui").PluginConfigEditor>}
