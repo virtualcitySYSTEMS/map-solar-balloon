@@ -1,54 +1,39 @@
-# vcs-solar-balloon
+# Solar Feature Info View for VC Solar Backend
 
-> Part of the [VC Map Project](https://github.com/virtualcitySYSTEMS/map-ui)
-> describe your plugin
+## Solar Feature info View
 
-======================DE=====================================================
-Mit Hilfe des Plugins können die vom Solarrechner berechneten Werte in
-übersichtlicher Form als Graphen dargestellt werden.
-Im App-Konfigurator besteht die Möglichkeit das Plugin nach eigenen Wünschen
-zu konfigurieren. Hier stehen folgende Möglichkeiten zur Auswahl:
+With the help of the plugin, the values calculated by VC Solar Backend can be
+displayed as diagram. The diagram shows the monthly irradiation values as graphs
+for direct, diffuse and global solar irradiation in kwh per month. Optionally,
+a table is displayed which shows the annual total of the individual types of
+irradiation. The diagram can be downloaded as an image in svg and png format.
+In addition, the raw data can be exported as a CSV file.
 
-- Auswahl der Graphdarstellung (Liniendiagramm oder Säulendiagramm)
-- Einstellung der Farben für Summenwerte als HEX- Farbstring
-- Einstellung der Farben für themat. Flächen als HEX- Farbstring
+![Solar Feature Info View](./plugin-assets/solar-feature-info.png)
 
-Alle vorgenommenen Änderungen werden in der Vorschau dargestellt und geben
-einen Eindruck davon, wie die Graphen in der VC-Map aussehen werden.
+## App Configurator
 
-Konfiguration des Plugin für Feature Info im App-Konfigurator:
+### Activate Plugin
 
-1. ein SolarFeatureInfo Element in der Kategorie FeatureInfo hinzufügen und anpassen
-2. um den Namen oder die Fenstergößen anzupassen, im Overflow "FeatureInfo" auswählen und die entsprechenden Anpassungen vornehmen.
-   Hier stehen alle grundsätzlichen Funktionen von FeatureInfo zur Verfügung.
-3. den / die entsprechenden Layer mit dem SolarFeatureInfo verknüpfen
-   => Layer auswählen und bearbeiten => Handhabung in der Karte öffnen
-   => FeatureInfo => SolarFeatureInfo auswählen
-4. Speichern
+1. Add plugin **@vcmap/vcs-solar-balloon** in the plugins section
+   ![Solar Feature Info View](./plugin-assets/add-plugin.png)
+2. Add **SolarFeatureInfo** to the feature info section
+   ![Solar Feature Info View](./plugin-assets/add-feature-info.png)
+3. Configure the solar feature info according to [Settings in Feature Info Section](#settings-in-feature-info-section)
+   ![Solar Feature Info View](./plugin-assets/configure-feature-info.png)
+4. Assign the the solar feature info to your solar layer
+   ![Solar Feature Info View](./plugin-assets/assign-layer.png)
 
-======================ENDE DE================================================
+### Settings in Feature Info Section
 
-======================EN=====================================================
-With the help of the plugin, the values calculated by the solar calculator can be
-calculated by the solar calculator can be displayed as graphs.
 In the app configurator, you can configure the plugin according to your own wishes.
-according to your own wishes. The following options are available here:
+The following options are available here:
 
-- Selection of the graph display (line chart or bar chart)
-- Setting the colors for sum values as HEX color string
-- Setting the colors for themat. Areas as HEX color string
+- Selection of the graph type (line chart or bar chart)
+- Setting the colors for irradiation values as HEX color string
+- Toogle option for optional table
 
 All changes made are displayed in the preview and give an impression of
 give an impression of how the graphs will look in the VC map.
 
-Configuration of the Feature Info plugin in the app configurator:
-
-1. add SolarFeatureInfo to your FeatureInfo views and adjust it to your needs
-2. To adjust the name or window sizes, select "FeatureInfo" in the overflow menu
-   and make the necessary adjustments. All the basic functions of FeatureInfo are available here.
-3. Link the corresponding layer(s) to the SolarFeatureInfo
-   => Select and edit layer => Open handling in the map
-   => FeatureInfo => Select SolarFeatureInfo
-4. save
-
-======================END EN================================================
+![Solar Feature Info View](./plugin-assets/solar-feature-info-settings.png)
