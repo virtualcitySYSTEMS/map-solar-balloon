@@ -1,3 +1,7 @@
+# v2.0.1
+
+- values in y axis are not stacked.
+
 # v2.0.0
 
 - updated to @vcmap/core and @vcmap/ui Version 6.0

@@ -94,7 +94,7 @@
       chart: {
         id: 'SolarFeatureInfoGraph',
         type: props.chartType,
-        stacked: true,
+        stacked: false,
         animations: {
           enabled: false,
         },
