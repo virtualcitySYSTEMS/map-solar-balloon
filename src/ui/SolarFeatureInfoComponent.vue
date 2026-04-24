@@ -94,6 +94,8 @@
       chart: {
         id: 'SolarFeatureInfoGraph',
         type: props.chartType,
+        nonce: (window as Window & { vcs?: { styleNonce?: string } }).vcs
+          ?.styleNonce,
         stacked: false,
         animations: {
           enabled: false,

@@ -1,3 +1,7 @@
+# v2.0.2
+
+- Added optional nonce to charts.
+
 # v2.0.1
 
 - values in y axis are not stacked.
